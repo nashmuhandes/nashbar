@@ -1,0 +1,24 @@
+//===========================================================================
+//
+// NashBar
+//
+// ZScript code: Copyright (C) 2020 - 2023 Nash Muhandes
+//
+// License: MIT
+//
+//===========================================================================
+
+class NashBarHandler : EventHandler
+{
+	override void PlayerEntered(PlayerEvent e)
+	{
+		SetupHealthBarTracer(e);
+	}
+
+	void SetupHealthBarTracer(PlayerEvent e)
+	{
+		PlayerInfo plr = players[e.PlayerNumber];
+		if (plr && plr.mo)
+			plr.mo.A_GiveInventory("NashBarHealthTracer");
+	}
+}

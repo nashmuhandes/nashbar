@@ -1,0 +1,5 @@
+GameInfo
+{
+	StatusBarClass = "NashBar"
+	AddEventHandlers = "NashBarHandler"
+}

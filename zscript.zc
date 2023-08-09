@@ -1,0 +1,5 @@
+version "4.5"
+
+#include "zscript/NashBar/NashBarHealthTracer.zc"
+#include "zscript/NashBar/NashBarHandler.zc"
+#include "zscript/NashBar/NashBar.zc"

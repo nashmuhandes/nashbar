@@ -1,0 +1,87 @@
+//===========================================================================
+//
+// NashBar
+//
+// ZScript code: Copyright (C) 2020 - 2023 Nash Muhandes
+//
+// License: MIT
+//
+//===========================================================================
+
+class NashBarHealthTracer : Inventory
+{
+	Actor currentAimTarget;
+
+	//===========================================================================
+	//
+	//
+	//
+	//===========================================================================
+
+	Default
+	{
+		Inventory.MaxAmount 1;
+		+Inventory.UNDROPPABLE
+		+Inventory.UNTOSSABLE
+	}
+
+	//===========================================================================
+	//
+	//
+	//
+	//===========================================================================
+
+	override void DoEffect(void)
+	{
+		if (Owner.player && Owner.player.playerstate == PST_LIVE)
+		{
+			UpdateAimTarget();
+		}
+	}
+
+	//===========================================================================
+	//
+	//
+	//
+	//===========================================================================
+
+	Actor GetAimTarget(Actor cam)
+	{
+		Actor at = NULL;
+		double vh = (cam is "PlayerPawn" && cam.player) ? cam.player.viewheight : cam.CameraHeight;
+		FLineTraceData t;
+		int flags = TRF_SOLIDACTORS;
+		cam.LineTrace(cam.Angle, 32768., cam.Pitch, flags, vh, data: t);
+		at = t.HitActor;
+
+		if (at != currentAimTarget)
+		{
+			currentAimTarget = NULL;
+		}
+
+		return at;
+	}
+
+	void UpdateAimTarget(void)
+	{
+		bool invalidTarget = false;
+		if (!Owner)
+			invalidTarget = true;
+		if (!Owner.player)
+			invalidTarget = true;
+		if (!Owner.player.camera)
+			invalidTarget = true;
+		if (invalidTarget)
+		{
+			currentAimTarget = NULL;
+			return;
+		}
+
+		let at = GetAimTarget(Owner.player.camera);
+		bool isLiveTarget = (at && at.bIsMonster) || at is "PlayerPawn";
+		if (isLiveTarget || at == NULL)
+		{
+			currentAimTarget = at;
+		}
+	}
+}

@@ -1,0 +1,586 @@
+//===========================================================================
+//
+// NashBar
+//
+// ZScript code: Copyright (C) 2020 - 2023 Nash Muhandes
+//
+// License: MIT
+//
+//===========================================================================
+
+class NashBar : DoomStatusBar
+{
+	const X_PADDING = 8;
+
+	HUDFont mHUDSmallFont;
+	HUDFont mHUDConFont;
+
+	Actor prevAimTarget;
+	double healthBarAlpha;
+
+	//===========================================================================
+	//
+	//
+	//
+	//===========================================================================
+
+	override void Init(void)
+	{
+		Super.Init();
+
+		mHUDSmallFont = HUDFont.Create(smallfont);
+		mHUDConFont = HUDFont.Create(confont);
+
+		InitNashBar();
+
+	}
+
+	override void NewGame(void)
+	{
+		Super.NewGame();
+		InitNashBar();
+	}
+
+	override void Draw(int state, double TicFrac)
+	{
+		if (state == HUD_StatusBar)
+		{
+			Super.Draw(state, TicFrac);
+			DrawHealthBar(state);
+
+			// custom status bar side extensions for widescreen 16:9
+			if (st_scale <= 4)
+			{
+				DrawImage("graphics/NashBar/statusbar/st_extra.lmp", (-53, 168), DI_ITEM_OFFSETS);
+				DrawStatusBarStats();
+				DrawStatusBarPowerups();
+			}
+		}
+		else if (state == HUD_Fullscreen)
+		{
+			if (!CVar.GetCVar('nashbar_helmet', CPlayer).GetBool())
+			{
+				Super.Draw(state, TicFrac);
+				DrawStats();
+				DrawAmmo();
+				DrawArms();
+				DrawMugshot();
+				DrawTime();
+				DrawHealthBar(state);
+			}
+			else
+			{
+				// need this for the crosshair and other basic neccessities that're hardcoded
+				BaseStatusBar.Draw(HUD_Fullscreen, TicFrac);
+
+				// draw helmet HUD
+				BeginHUD(forcescaled: true);
+				DrawHelmetHUD();
+			}
+		}
+	}
+
+	//===========================================================================
+	//
+	//
+	//
+	//===========================================================================
+
+	void InitNashBar(void)
+	{
+		prevAimTarget = NULL;
+		healthBarAlpha = 0.;
+	}
+
+	//===========================================================================
+	//
+	//
+	//
+	//===========================================================================
+
+	void DrawStatusBarStats(void)
+	{
+		int amt;
+		int pcnt;
+
+		int xoffset = 71;
+
+		// kills
+		pcnt = Level.total_monsters ? 100 * Level.killed_monsters / Level.total_monsters : 100;
+		amt = multiplayer ? CPlayer.killcount : pcnt;
+		DrawString(mIndexFont, FormatNumber(amt, 3), (288 + xoffset, 173), DI_TEXT_ALIGN_RIGHT);
+
+		// items
+		pcnt = Level.total_items ? 100 * Level.found_items / Level.total_items : 100;
+		amt = multiplayer ? CPlayer.itemcount : pcnt;
+		DrawString(mIndexFont, FormatNumber(amt, 3), (288 + xoffset, 179), DI_TEXT_ALIGN_RIGHT);
+
+		// secrets
+		pcnt = Level.total_secrets ? 100 * Level.found_secrets / Level.total_secrets : 100;
+		amt = multiplayer ? CPlayer.secretcount : pcnt;
+		DrawString(mIndexFont, FormatNumber(amt, 3), (288 + xoffset, 185), DI_TEXT_ALIGN_RIGHT);
+
+		// time stuff
+		bool sucks = false;
+		int timeSeconds = Thinker.Tics2Seconds(Level.time);
+		int hours   = timeSeconds / 3600;
+		int minutes = (timeSeconds % 3600) / 60;
+		int seconds = timeSeconds % 60;
+
+		if (minutes > 99)
+			sucks = true;
+
+		if (!sucks)
+		{
+			// offset if we're showing hours
+			//xoffset -= 6;
+
+			// hours
+			amt = hours;
+			//DrawString(mIndexFont, FormatNumber(amt, 2, format: 2), (274 + xoffset, 191), DI_TEXT_ALIGN_RIGHT);
+
+			// minutes
+			amt = minutes;
+			DrawString(mIndexFont, FormatNumber(amt, 2, format: 2), (286 + xoffset, 191), DI_TEXT_ALIGN_RIGHT);
+
+			// seconds
+			amt = seconds;
+			DrawString(mIndexFont, FormatNumber(amt, 2, format: 2), (298 + xoffset, 191), DI_TEXT_ALIGN_RIGHT);
+		}
+		else
+		{
+			// time sucks
+			DrawImage("graphics/NashBar/statusbar/st_sucks.lmp", (344, 191), DI_ITEM_OFFSETS);
+		}
+	}
+
+	//===========================================================================
+	//
+	//
+	//
+	//===========================================================================
+
+	void DrawStatusBarPowerups(void)
+	{
+		let invul = CPlayer.mo.FindInventory("PowerInvulnerable");
+		if (invul)
+			DrawImage("graphics/NashBar/statusbar/st_invul.lmp", (-48, 172), DI_ITEM_OFFSETS);
+
+		let lightamp = CPlayer.mo.FindInventory("PowerLightAmp");
+		if (lightamp)
+			DrawImage("graphics/NashBar/statusbar/st_lightamp.lmp", (-33, 174), DI_ITEM_OFFSETS);
+
+		let invis = CPlayer.mo.FindInventory("PowerInvisibility");
+		if (invis)
+			DrawImage("graphics/NashBar/statusbar/st_invis.lmp", (-17, 172), DI_ITEM_OFFSETS);
+
+		let berserk = CPlayer.mo.FindInventory("PowerStrength");
+		if (berserk)
+			DrawImage("graphics/NashBar/statusbar/st_berserk.lmp", (-48, 188), DI_ITEM_OFFSETS);
+
+		let radsuit = CPlayer.mo.FindInventory("PowerIronFeet");
+		if (radsuit)
+			DrawImage("graphics/NashBar/statusbar/st_radsuit.lmp", (-33, 185), DI_ITEM_OFFSETS);
+
+		let allmap = Level.allmap;
+		if (allmap)
+			DrawImage("graphics/NashBar/statusbar/st_allmap.lmp", (-17, 186), DI_ITEM_OFFSETS);
+	}
+
+	//===========================================================================
+	//
+	//
+	//
+	//===========================================================================
+
+	void DrawStats(void)
+	{
+		Vector2 pos = (0, 0);
+
+		int flags = DI_SCREEN_LEFT_BOTTOM;
+
+		/*
+		int statXPos = 0;
+		int currentWidth = 0;
+
+		let strMonsters = StringTable.Localize("$AM_MONSTERS");
+		currentWidth = mHUDSmallFont.mFont.StringWidth(strMonsters);
+		if (currentWidth > statXPos)
+			statXPos = currentWidth;
+
+		let strSecrets = StringTable.Localize("$AM_SECRETS");
+		currentWidth = mHUDSmallFont.mFont.StringWidth(strSecrets);
+		if (currentWidth > statXPos)
+			statXPos = currentWidth;
+
+		let strItems = StringTable.Localize("$AM_ITEMS");
+		currentWidth = mHUDSmallFont.mFont.StringWidth(strItems);
+		if (currentWidth > statXPos)
+			statXPos = currentWidth;
+
+		pos.X = X_PADDING;
+
+		statXPos += 8;
+
+		pos.Y = -64;
+
+		DrawStatText(pos, statXPos, strMonsters, String.Format("%i/%i ", multiplayer ? CPlayer.killcount : Level.killed_monsters, Level.total_monsters), flags);
+
+		pos.Y += 8;
+
+		DrawStatText(pos, statXPos, strSecrets, String.Format("%i/%i ", multiplayer ? CPlayer.secretcount : Level.found_secrets, Level.total_secrets), flags);
+
+		pos.Y += 8;
+
+		DrawStatText(pos, statXPos, strItems, String.Format("%i/%i ", multiplayer ? CPlayer.itemcount : Level.found_items, Level.total_items), flags);
+		*/
+
+		int clr = gameinfo.gametype & GAME_DoomChex ? Font.CR_UNTRANSLATED : Font.CR_YELLOW;
+		double fontHeight = mHUDSmallFont.mFont.GetHeight() + 1;
+		Vector2 adjust = (8, -fontHeight);
+
+		pos.X = 12;
+
+		pos.Y = -75;
+		DrawImage("graphics/NashBar/icon_monsters.lmp", pos, flags);
+		DrawString(mHUDSmallFont, String.Format("%i/%i ", multiplayer ? CPlayer.killcount : Level.killed_monsters, Level.total_monsters), pos + adjust, flags, clr);
+
+		pos.Y += 15;
+		DrawImage("graphics/NashBar/icon_items.lmp", pos, flags);
+		DrawString(mHUDSmallFont, String.Format("%i/%i ", multiplayer ? CPlayer.itemcount : Level.found_items, Level.total_items), pos + adjust, flags, clr);
+
+		pos.Y += 15;
+		DrawImage("graphics/NashBar/icon_secrets.lmp", pos, flags);
+		DrawString(mHUDSmallFont, String.Format("%i/%i ", multiplayer ? CPlayer.secretcount : Level.found_secrets, Level.total_secrets), pos + adjust, flags, clr);
+	}
+
+	/*
+	void DrawStatText(Vector2 pos, int statXPos, String prefix, String text, int flags)
+	{
+		int clr = gameinfo.gametype & GAME_DoomChex ? Font.CR_UNTRANSLATED : Font.CR_YELLOW;
+		DrawString(mHUDSmallFont, prefix, pos, flags, clr);
+		clr = Font.CR_GREY;
+		DrawString(mHUDSmallFont, text, pos + (statXPos, 0), flags, clr);
+	}
+	*/
+
+	//===========================================================================
+	//
+	//
+	//
+	//===========================================================================
+
+	void DrawAmmo(void)
+	{
+		Vector2 pos = (0, 0);
+
+		int flags = DI_SCREEN_RIGHT_BOTTOM;
+
+		class<Inventory> ammoCls;
+		int ammoCurrent, ammoMax = 0;
+		Inventory ammoItem;
+
+		String txt;
+
+		pos.Y -= 48;
+
+		Array<class<Ammo> > ammoTypes;
+		ammoTypes.Clear();
+		ammoCls = "Cell";
+		ammoTypes.Push(ammoCls);
+		ammoCls = "RocketAmmo";
+		ammoTypes.Push(ammoCls);
+		ammoCls = "Shell";
+		ammoTypes.Push(ammoCls);
+		ammoCls = "Clip";
+		ammoTypes.Push(ammoCls);
+
+		for (int i = 0; i < ammoTypes.Size(); i++)
+		{
+			ammoCls = ammoTypes[i];
+			ammoItem = CPlayer.mo.FindInventory(ammoCls);
+			ammoCurrent = ammoItem ? ammoItem.Amount : 0;
+			ammoMax = ammoItem ? ammoItem.MaxAmount : GetDefaultByType(ammoCls).MaxAmount;
+
+			txt = String.Format("%d", ammoMax);
+			pos.X = -mHUDSmallFont.mFont.StringWidth(txt) - X_PADDING;
+			pos.Y -= mHUDSmallFont.mFont.GetHeight();
+			DrawString(mHUDSmallFont, txt, pos, flags, Font.CR_UNTRANSLATED);
+
+			txt = "/";
+			DrawString(mHUDSmallFont, txt, (-32 - X_PADDING, pos.Y), flags, Font.CR_UNTRANSLATED);
+
+			txt = String.Format("%d", ammoCurrent);
+			DrawString(mHUDSmallFont, txt, (-56 - X_PADDING, pos.Y), flags, Font.CR_UNTRANSLATED);
+
+			let inv = GetDefaultByType(ammoCls);
+			let tex = inv.Icon;
+			let texName = TexMan.GetName(tex);
+			let texsize = TexMan.GetScaledSize(tex);
+			Vector2 iconScale = (1.0, 1.0);
+			iconScale.Y = 1.0 * (mHUDSmallFont.mFont.GetHeight() / texSize.Y);
+			iconScale.X = iconScale.Y;
+			DrawImage(texName, (-72 - X_PADDING, pos.Y + mHUDSmallFont.mFont.GetHeight() - 2), flags, scale: iconScale);
+		}
+	}
+
+	//===========================================================================
+	//
+	//
+	//
+	//===========================================================================
+
+	void DrawArms(void)
+	{
+		Vector2 pos = (0, 0);
+
+		int flags = DI_SCREEN_RIGHT_BOTTOM;
+
+		String armsTxt;
+
+		// scan all weapons
+		for (int k = 0; k < PlayerPawn.NUM_WEAPON_SLOTS; k++)
+		{
+			int slotsize = CPlayer.weapons.SlotSize(k);
+			for (int j = 0; j < slotsize; j++)
+			{
+				let weap = CPlayer.weapons.GetWeapon(k, j);
+				if (weap)
+				{
+					if (CPlayer.mo.FindInventory(weap))
+					{
+						String selectColor = CPlayer.ReadyWeapon.GetClass() == weap ? "\c[GOLD]" : "\c[DARKGREY]";
+						if (k != k - 1)
+							armsTxt = armsTxt .. selectColor .. String.Format("%d", k) .. "\c[DARKGREY]";
+					}
+				}
+			}
+		}
+
+		String txt = String.Format("%s", armsTxt);
+
+		pos.X = -mHUDSmallFont.mFont.StringWidth(txt) - X_PADDING;
+		pos.Y -= 48;
+		DrawString(mHUDSmallFont, txt, pos, flags, Font.CR_UNTRANSLATED);
+	}
+
+	//===========================================================================
+	//
+	//
+	//
+	//===========================================================================
+
+	void DrawMugshot(void)
+	{
+		int flags = DI_SCREEN_LEFT_BOTTOM;
+		let mug = GetMugShot(5);
+		DrawTexture(mug, (104, -1), flags);
+	}
+
+	//===========================================================================
+	//
+	//
+	//
+	//===========================================================================
+
+	void DrawTime(void)
+	{
+		int flags = DI_SCREEN_LEFT_BOTTOM;
+		Vector2 pos;
+
+		pos.X = X_PADDING;
+		//pos.Y = -72 - mHUDSmallFont.mFont.GetHeight();
+		pos.Y = -108 - mHUDSmallFont.mFont.GetHeight();
+
+		int timer;
+		int seconds;
+		String txt;
+		let clr = Font.CR_WHITE;
+
+		timer = Level.time;
+		seconds = Thinker.Tics2Seconds(timer);
+		txt= String.Format("%02i:%02i:%02i", seconds / 3600, (seconds % 3600) / 60, seconds % 60);
+		DrawString(mHUDSmallFont, txt, pos, flags, clr);
+
+		pos.Y += mHUDSmallFont.mFont.GetHeight();
+
+		timer = Level.totaltime;
+		seconds = Thinker.Tics2Seconds(timer);
+		txt = String.Format("%02i:%02i:%02i", seconds / 3600, (seconds % 3600) / 60, seconds % 60);
+		DrawString(mHUDSmallFont, txt, pos, flags, clr);
+	}
+
+	//===========================================================================
+	//
+	//
+	//
+	//===========================================================================
+
+	// taken from GZDoom's vdraw.cpp
+	int GetUIScale(int altval)
+	{
+		int scaleval;
+		if (altval > 0)
+			scaleval = altval;
+		else if (uiscale == 0)
+		{
+			// Default should try to scale to 640x400
+			int vscale = Screen.GetHeight() / 400;
+			int hscale =Screen.GetWidth() / 640;
+			scaleval = clamp(vscale, 1, hscale);
+		}
+		else scaleval = uiscale;
+
+		// block scales that result in something larger than the current screen.
+		int vmax =Screen.GetHeight() / 200;
+		int hmax =Screen.GetWidth() / 320;
+		int smax = max(vmax, hmax);
+		return max(1, min(scaleval, smax));
+	}
+
+	//===========================================================================
+	//
+	//
+	//
+	//===========================================================================
+
+	void DrawHealthBar(int state)
+	{
+		if (!CPlayer || !CPlayer.mo)
+			return;
+
+		if (automapactive)
+			return;
+
+		let tracer = NashBarHealthTracer(CPlayer.mo.FindInventory("NashBarHealthTracer"));
+		if (!tracer)
+			return;
+
+		if (tracer.currentAimTarget && CPlayer.playerstate == PST_LIVE)
+		{
+			prevAimTarget = tracer.currentAimTarget;
+			healthBarAlpha = 1.0;
+		}
+		else
+		{
+			healthBarAlpha *= 0.926;
+		}
+
+		if (prevAimTarget)
+		{
+			// get fonts
+			Font fnt = mHUDSmallFont.mFont;
+
+			// fonts are invalid, cancel drawing
+			if (!fnt)
+				return;
+
+			// retrieve target health
+			int health = prevAimTarget.Health;
+			int maxHealth = prevAimTarget.GetMaxHealth(true);
+
+			// no need to draw 0 or negative health
+			if (health <= 0)
+				return;
+
+			// base Y position of the entire HP bar interface
+			let scale = GetUIScale(con_scaletext);
+			double baseYPos = (fnt.GetHeight() * scale) * con_notifylines;
+			baseYPos /= CleanYFac;
+			baseYPos += fnt.GetHeight();
+
+			// draw HP bar background and border
+			let brdTex = TexMan.CheckForTexture("graphics/NashBar/HPBarBorder.lmp");
+			if (brdTex.IsValid())
+			{
+				Vector2 brdTexSize = TexMan.GetScaledSize(brdTex);
+				Screen.DrawTexture(brdTex, false,
+					(Screen.GetWidth() / 2) - ((brdTexSize.X / 2) * CleanXFac),
+					(baseYPos * CleanYFac),
+					DTA_CleanNoMove, true,
+					DTA_KeepRatio, true,
+					DTA_Alpha, healthBarAlpha);
+			}
+
+			let bgTex = TexMan.CheckForTexture("graphics/NashBar/HPBarShade.lmp");
+			if (bgTex.IsValid())
+			{
+				Vector2 bgTexSize = TexMan.GetScaledSize(bgTex);
+				Screen.DrawTexture(bgTex, false,
+					(Screen.GetWidth() / 2) - ((bgTexSize.X / 2) * CleanXFac),
+					(baseYPos * CleanYFac),
+					DTA_CleanNoMove, true,
+					DTA_KeepRatio, true,
+					DTA_Alpha, 0.66 * healthBarAlpha);
+			}
+
+			String txt;
+
+			// draw health bar
+			let barTex = TexMan.CheckForTexture("graphics/NashBar/HPBarHealth.lmp");
+			if (barTex.IsValid())
+			{
+				Vector2 barTexSize = TexMan.GetScaledSize(barTex);
+
+				// get the starting X pos to clip to
+				int clipX = (Screen.GetWidth() / 2) - ((int(barTexSize.X) / 2) * CleanXFac);
+
+				// get the full X size of the texture
+				int fullClip = (int(barTexSize.X) * CleanXFac);
+
+				// get health percentage
+				int healthPercent = 100 * health / maxHealth;
+				int maxClip = fullClip * healthPercent / 100;
+
+				// set the clipping
+				clipX += maxClip;
+
+				Screen.DrawTexture(barTex, false,
+					(Screen.GetWidth() / 2) - ((barTexSize.X / 2) * CleanXFac),
+					(baseYPos * CleanYFac),
+					DTA_ClipRight, int(clipX),
+					DTA_CleanNoMove, true,
+					DTA_KeepRatio, true,
+					DTA_Alpha, healthBarAlpha);
+			}
+
+			// get font colours
+			int normalTxtColor = Font.CR_RED;
+			int nameTxtColor = Font.CR_WHITE;
+
+			// draw target name
+			String targName = prevAimTarget.GetCharacterName();
+			if (prevAimTarget is "PlayerPawn" && prevAimTarget.player && playeringame[prevAimTarget.PlayerNumber()])
+				targName = prevAimTarget.player.GetUserName();
+			txt = String.Format("%s", targName);
+			Screen.DrawText(fnt, nameTxtColor,
+				(Screen.GetWidth() / 2) - ((fnt.StringWidth(txt) / 2) * CleanXFac),
+				(baseYPos * CleanYFac) - (fnt.GetHeight() * CleanYFac),
+				txt,
+				DTA_CleanNoMove, true,
+				DTA_KeepRatio, true,
+				DTA_Alpha, healthBarAlpha);
+
+			// draw target health in numbers
+			txt = String.Format("%d/%d", health, maxHealth);
+			Screen.DrawText(fnt, normalTxtColor,
+				(Screen.GetWidth() / 2) - ((fnt.StringWidth(txt) / 2) * CleanXFac),
+				(baseYPos * CleanYFac) + (fnt.GetHeight() * CleanYFac) - (fnt.GetHeight() * CleanYFac) + (3 * CleanYFac),
+				txt,
+				DTA_CleanNoMove, true,
+				DTA_KeepRatio, true,
+				DTA_Alpha, healthBarAlpha);
+		}
+	}
+
+	//===========================================================================
+	//
+	//
+	//
+	//===========================================================================
+
+	void DrawHelmetHUD(void)
+	{
+		// nothing yet
+	}
+}
