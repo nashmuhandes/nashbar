@@ -449,6 +449,9 @@ class NashBar : DoomStatusBar
 		if (!CPlayer || !CPlayer.mo)
 			return;
 
+		if (!CVar.GetCVar("nashbar_hpbar", CPlayer).GetBool())
+			return;
+
 		if (automapactive)
 			return;
 

@@ -1,1 +1,2 @@
 user bool nashbar_helmet = false;
+user bool nashbar_hpbar = true;
