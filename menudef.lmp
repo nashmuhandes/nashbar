@@ -1,0 +1,20 @@
+AddOptionMenu "OptionsMenu"
+{
+	StaticText "NashBar v1.1"
+	Submenu "$OPTMNU_NASHBAR", "NashBarOptionMenu"
+	StaticText ""
+}
+
+AddOptionMenu "OptionsMenuSimple"
+{
+	StaticText "NashBar v1.1"
+	Submenu "$OPTMNU_NASHBAR", "NashBarOptionMenu"
+	StaticText ""
+}
+
+OptionMenu "NashBarOptionMenu"
+{
+	Title "$OPTMNU_NASHBAR"
+	Position -32
+	Option "$OPTMNU_NASHBAR_HP_BAR", "nashbar_hpbar", "OnOff"
+}

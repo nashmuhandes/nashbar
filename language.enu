@@ -1,1 +1,4 @@
 [enu default]
+
+OPTMNU_NASHBAR = "NashBar Options";
+OPTMNU_NASHBAR_HP_BAR = "Target Health Display";

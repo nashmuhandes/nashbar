@@ -2,7 +2,7 @@
 //
 // NashBar
 //
-// ZScript code: Copyright (C) 2020 - 2023 Nash Muhandes
+// ZScript code: Copyright (C) 2020 - 2025 Nash Muhandes
 //
 // License: MIT
 //
@@ -276,7 +276,7 @@ class NashBar : DoomStatusBar
 
 		int flags = DI_SCREEN_RIGHT_BOTTOM;
 
-		class<Inventory> ammoCls;
+		class<Ammo> ammoCls;
 		int ammoCurrent, ammoMax = 0;
 		Inventory ammoItem;
 
