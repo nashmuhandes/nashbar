@@ -1,13 +1,13 @@
 AddOptionMenu "OptionsMenu"
 {
-	StaticText "NashBar v1.1"
+	StaticText "NashBar v0.91"
 	Submenu "$OPTMNU_NASHBAR", "NashBarOptionMenu"
 	StaticText ""
 }
 
 AddOptionMenu "OptionsMenuSimple"
 {
-	StaticText "NashBar v1.1"
+	StaticText "NashBar v0.91"
 	Submenu "$OPTMNU_NASHBAR", "NashBarOptionMenu"
 	StaticText ""
 }
