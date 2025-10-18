@@ -2,4 +2,5 @@
 
 OPTMNU_NASHBAR = "NashBar Options";
 OPTMNU_NASHBAR_HP_BAR = "Target Health Display";
-OPTMNU_NASHBAR_TRANSPARENT = "Transparent Status Bar";
+OPTMNU_NASHBAR_TRANSPARENT = "Fullscreen HUD";
+OPTVAL_TRANSSTATBAR = "Transparent status bar";
