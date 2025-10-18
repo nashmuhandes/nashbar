@@ -17,4 +17,5 @@ OptionMenu "NashBarOptionMenu"
 	Title "$OPTMNU_NASHBAR"
 	Position -32
 	Option "$OPTMNU_NASHBAR_HP_BAR", "nashbar_hpbar", "OnOff"
+	Option "$OPTMNU_NASHBAR_TRANSPARENT", "nashbar_transparent", "OnOff"
 }
