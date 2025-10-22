@@ -172,25 +172,26 @@ class NashBar : DoomStatusBar
 
 	void DrawStatusBarPowerups(void)
 	{
-		let invul = CPlayer.mo.FindInventory("PowerInvulnerable");
+		let invul = Powerup(CPlayer.mo.FindInventory("PowerInvulnerable"));
 		if (invul)
-			DrawImage("graphics/NashBar/statusbar/st_invul.lmp", (-48, 172), DI_ITEM_OFFSETS);
+			DrawBar("graphics/NashBar/statusbar/st_invul.lmp", "graphics/NashBar/statusbar/st_orbback.lmp", int(Ceil(double(invul.EffectTics))), int(Ceil(double(invul.MaxEffectTics))), (-48, 172), 0, SHADER_VERT|SHADER_REVERSE, DI_ITEM_OFFSETS, 1.0);
+			// These specialized blank bar background graphics help the foreground graphic draw better. I was getting erroneous black pixels otherwise ~Sev
 
-		let lightamp = CPlayer.mo.FindInventory("PowerLightAmp");
+		let lightamp = Powerup(CPlayer.mo.FindInventory("PowerLightAmp"));
 		if (lightamp)
-			DrawImage("graphics/NashBar/statusbar/st_lightamp.lmp", (-33, 174), DI_ITEM_OFFSETS);
+			DrawBar("graphics/NashBar/statusbar/st_lightamp.lmp", "graphics/NashBar/statusbar/st_lightampback.lmp", int(Ceil(double(lightamp.EffectTics))), int(Ceil(double(lightamp.MaxEffectTics))), (-33, 174), 0, SHADER_VERT|SHADER_REVERSE, DI_ITEM_OFFSETS, 1.0);
 
-		let invis = CPlayer.mo.FindInventory("PowerInvisibility");
+		let invis = Powerup(CPlayer.mo.FindInventory("PowerInvisibility"));
 		if (invis)
-			DrawImage("graphics/NashBar/statusbar/st_invis.lmp", (-17, 172), DI_ITEM_OFFSETS);
+			DrawBar("graphics/NashBar/statusbar/st_invis.lmp", "graphics/NashBar/statusbar/st_orbback.lmp", int(Ceil(double(invis.EffectTics))), int(Ceil(double(invis.MaxEffectTics))), (-17, 172), 0, SHADER_VERT|SHADER_REVERSE, DI_ITEM_OFFSETS, 1.0);
 
 		let berserk = CPlayer.mo.FindInventory("PowerStrength");
 		if (berserk)
 			DrawImage("graphics/NashBar/statusbar/st_berserk.lmp", (-48, 188), DI_ITEM_OFFSETS);
 
-		let radsuit = CPlayer.mo.FindInventory("PowerIronFeet");
+		let radsuit = Powerup(CPlayer.mo.FindInventory("PowerIronFeet"));
 		if (radsuit)
-			DrawImage("graphics/NashBar/statusbar/st_radsuit.lmp", (-33, 185), DI_ITEM_OFFSETS);
+			DrawBar("graphics/NashBar/statusbar/st_radsuit.lmp", "graphics/NashBar/statusbar/st_radsuitback.lmp", int(Ceil(double(radSuit.EffectTics))), int(Ceil(double(radSuit.MaxEffectTics))), (-33, 185), 0, SHADER_VERT|SHADER_REVERSE, DI_ITEM_OFFSETS, 1.0);
 
 		let allmap = Level.allmap;
 		if (allmap)
