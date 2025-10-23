@@ -52,7 +52,7 @@ class NashBar : DoomStatusBar
 			if (st_scale <= 4)
 			{
 				DrawImage("graphics/NashBar/statusbar/st_extra.lmp", (-53, 168), DI_ITEM_OFFSETS);
-				DrawStatusBarStats();
+				DrawStatusBarStats(state);
 				DrawStatusBarPowerups();
 			}
 		}
@@ -73,7 +73,7 @@ class NashBar : DoomStatusBar
 				else
 				{
 					BaseStatusBar.Draw(HUD_Fullscreen, TicFrac);
-					DrawTransparentStatBar();
+					DrawTransparentStatBar(state);
 					// draw crosshair etc
 					DrawHealthBar(state);					
 				}
@@ -108,7 +108,7 @@ class NashBar : DoomStatusBar
 	//
 	//===========================================================================
 
-	void DrawStatusBarStats(void)
+	void DrawStatusBarStats(int state)
 	{
 		int amt;
 		int pcnt;
@@ -132,26 +132,33 @@ class NashBar : DoomStatusBar
 
 		// time stuff
 		bool sucks = false;
+		int hoursoffset = 0;
 		int timeSeconds = Thinker.Tics2Seconds(Level.time);
 		int hours   = timeSeconds / 3600;
 		int minutes = (timeSeconds % 3600) / 60;
 		int seconds = timeSeconds % 60;
 
-		if (minutes > 99)
+//		if ((hours >= Level.sucktime) || (hours >= 10))
+		if (hours >= 10)
 			sucks = true;
-
+			
 		if (!sucks)
 		{
-			// offset if we're showing hours
-			//xoffset -= 6;
-
 			// hours
-			amt = hours;
-			//DrawString(mIndexFont, FormatNumber(amt, 2, format: 2), (274 + xoffset, 191), DI_TEXT_ALIGN_RIGHT);
+			if (hours >= 1)
+			{
+				hoursoffset = 1;
+				amt = hours;
+				DrawString(mIndexFont, FormatNumber(amt, 1, format: 1), (274 + xoffset+2, 191), DI_TEXT_ALIGN_RIGHT);
+				if (state == HUD_Fullscreen)
+					DrawImage("graphics/NashBar/transparent/transtcolon.png", (347, 192), DI_ITEM_OFFSETS);
+				else
+					DrawImage("graphics/NashBar/statusbar/st_colon.lmp", (347, 192), DI_ITEM_OFFSETS);
+			}
 
 			// minutes
 			amt = minutes;
-			DrawString(mIndexFont, FormatNumber(amt, 2, format: 2), (286 + xoffset, 191), DI_TEXT_ALIGN_RIGHT);
+			DrawString(mIndexFont, FormatNumber(amt, 2, format: 2), (286 + xoffset+hoursoffset, 191), DI_TEXT_ALIGN_RIGHT);
 
 			// seconds
 			amt = seconds;
@@ -593,10 +600,10 @@ class NashBar : DoomStatusBar
 	//
 	//===========================================================================
 
-	void DrawTransparentStatBar(void)
+	void DrawTransparentStatBar(int state)
 	{
 		DrawImage("graphics/NashBar/transparent/transtextra.png", (-53, 168), DI_ITEM_OFFSETS);
-		DrawStatusBarStats();
+		DrawStatusBarStats(state);
 		DrawStatusBarPowerups();
 		
 		// Okay, time to draw the rest of the owl
