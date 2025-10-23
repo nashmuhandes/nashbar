@@ -133,6 +133,7 @@ class NashBar : DoomStatusBar
 		// time stuff
 		bool sucks = false;
 		int hoursoffset = 0;
+		int minsdigits = 1;
 		int timeSeconds = Thinker.Tics2Seconds(Level.time);
 		int hours   = timeSeconds / 3600;
 		int minutes = (timeSeconds % 3600) / 60;
@@ -149,7 +150,7 @@ class NashBar : DoomStatusBar
 			{
 				hoursoffset = 1;
 				amt = hours;
-				DrawString(mIndexFont, FormatNumber(amt, 1, format: 1), (274 + xoffset+2, 191), DI_TEXT_ALIGN_RIGHT);
+				DrawString(mIndexFont, FormatNumber(amt, 1, format: 2), (274 + xoffset+2, 191), DI_TEXT_ALIGN_RIGHT);
 				if (state == HUD_Fullscreen)
 					DrawImage("graphics/NashBar/transparent/transtcolon.png", (347, 192), DI_ITEM_OFFSETS);
 				else
@@ -157,8 +158,10 @@ class NashBar : DoomStatusBar
 			}
 
 			// minutes
+			if ((minutes >= 10) || (hours >= 1))
+				minsdigits = 2;
 			amt = minutes;
-			DrawString(mIndexFont, FormatNumber(amt, 2, format: 2), (286 + xoffset+hoursoffset, 191), DI_TEXT_ALIGN_RIGHT);
+			DrawString(mIndexFont, FormatNumber(amt, minsdigits, format: 2), (286 + xoffset+hoursoffset, 191), DI_TEXT_ALIGN_RIGHT);
 
 			// seconds
 			amt = seconds;
