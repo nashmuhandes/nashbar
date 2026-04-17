@@ -2,7 +2,7 @@
 //
 // NashBar
 //
-// ZScript code: Copyright (C) 2020 - 2025 Nash Muhandes
+// ZScript code: Copyright (C) 2020 - 2026 Nash Muhandes
 //
 // License: MIT
 //
@@ -284,7 +284,7 @@ class NashBar : DoomStatusBar
 
 		pos.Y -= 48;
 
-		Array<class<Ammo> > ammoTypes;
+		Array<class<Ammo>> ammoTypes;
 		ammoTypes.Clear();
 		ammoCls = "Cell";
 		ammoTypes.Push(ammoCls);
