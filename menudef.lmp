@@ -1,15 +1,15 @@
-AddOptionMenu "OptionsMenu"
+AddOptionMenu "OptionsMenu" after "os_Menu"
 {
+	StaticText ""
 	StaticText "NashBar v0.91"
 	Submenu "$OPTMNU_NASHBAR", "NashBarOptionMenu"
-	StaticText ""
 }
 
-AddOptionMenu "OptionsMenuSimple"
+AddOptionMenu "OptionsMenuSimple" after "os_Menu"
 {
+	StaticText ""
 	StaticText "NashBar v0.91"
 	Submenu "$OPTMNU_NASHBAR", "NashBarOptionMenu"
-	StaticText ""
 }
 
 OptionMenu "NashBarOptionMenu"
