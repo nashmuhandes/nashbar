@@ -536,7 +536,7 @@ class NashBar : DoomStatusBar
 			{
 				Vector2 brdTexSize = TexMan.GetScaledSize(brdTex);
 				Screen.DrawTexture(brdTex, false,
-					(Screen.GetWidth() * 0.5) - ((brdTexSize.X * 0.5) * CleanXFac),
+					(Screen.GetWidth() / 2) - ((brdTexSize.X / 2) * CleanXFac),
 					(baseYPos * CleanYFac),
 					DTA_CleanNoMove, true,
 					DTA_KeepRatio, true,
@@ -548,7 +548,7 @@ class NashBar : DoomStatusBar
 			{
 				Vector2 bgTexSize = TexMan.GetScaledSize(bgTex);
 				Screen.DrawTexture(bgTex, false,
-					(Screen.GetWidth() * 0.5) - ((bgTexSize.X * 0.5) * CleanXFac),
+					(Screen.GetWidth() / 2) - ((bgTexSize.X / 2) * CleanXFac),
 					(baseYPos * CleanYFac),
 					DTA_CleanNoMove, true,
 					DTA_KeepRatio, true,
@@ -564,7 +564,7 @@ class NashBar : DoomStatusBar
 				Vector2 barTexSize = TexMan.GetScaledSize(barTex);
 
 				// get the starting X pos to clip to
-				int clipX = (Screen.GetWidth() * 0.5) - ((int(barTexSize.X) * 0.5) * CleanXFac);
+				int clipX = (Screen.GetWidth() / 2) - ((int(barTexSize.X) / 2) * CleanXFac);
 
 				// get the full X size of the texture
 				int fullClip = (int(barTexSize.X) * CleanXFac);
@@ -577,7 +577,7 @@ class NashBar : DoomStatusBar
 				clipX += maxClip;
 
 				Screen.DrawTexture(barTex, false,
-					(Screen.GetWidth() * 0.5) - ((barTexSize.X * 0.5) * CleanXFac),
+					(Screen.GetWidth() / 2) - ((barTexSize.X / 2) * CleanXFac),
 					(baseYPos * CleanYFac),
 					DTA_ClipRight, int(clipX),
 					DTA_CleanNoMove, true,
@@ -595,7 +595,7 @@ class NashBar : DoomStatusBar
 				targName = prevAimTarget.player.GetUserName();
 			txt = String.Format("%s", targName);
 			Screen.DrawText(fnt, nameTxtColor,
-				(Screen.GetWidth() * 0.5) - ((fnt.StringWidth(txt) * 0.5) * CleanXFac),
+				(Screen.GetWidth() / 2) - ((fnt.StringWidth(txt) / 2) * CleanXFac),
 				(baseYPos * CleanYFac) - (fnt.GetHeight() * CleanYFac),
 				txt,
 				DTA_CleanNoMove, true,
@@ -605,7 +605,7 @@ class NashBar : DoomStatusBar
 			// draw target health in numbers
 			txt = String.Format("%d/%d", health, maxHealth);
 			Screen.DrawText(fnt, normalTxtColor,
-				(Screen.GetWidth() * 0.5) - ((fnt.StringWidth(txt) * 0.5) * CleanXFac),
+				(Screen.GetWidth() / 2) - ((fnt.StringWidth(txt) / 2) * CleanXFac),
 				(baseYPos * CleanYFac) + (fnt.GetHeight() * CleanYFac) - (fnt.GetHeight() * CleanYFac) + (3.0 * CleanYFac),
 				txt,
 				DTA_CleanNoMove, true,
