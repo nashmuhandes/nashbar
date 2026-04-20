@@ -1,13 +1,13 @@
 AddOptionMenu "OptionsMenu" before "reset2defaults"
 {
-	StaticText "NashBar v0.91"
+	StaticText "$NASHBAR_VERSION"
 	SubMenu "$OPTMNU_NASHBAR", "NashBarOptionMenu"
 	StaticText ""
 }
 
 AddOptionMenu "OptionsMenuSimple" before "reset2defaults"
 {
-	StaticText "NashBar v0.91"
+	StaticText "$NASHBAR_VERSION"
 	SubMenu "$OPTMNU_NASHBAR", "NashBarOptionMenu"
 	StaticText ""
 }
